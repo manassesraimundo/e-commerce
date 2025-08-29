@@ -9,7 +9,7 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "sqlite"
   url      = env("DATABASE_URL")
 }
 
@@ -50,8 +50,8 @@ model Address {
   complement   String? // Apto, bloco, referência
   neighborhood String? // Bairro
   city         String
-  state        String
-  postalCode   String // CEP
+  state        String?
+  postalCode   String? // CEP
   country      String  @default("Angola") // ou "Brazil", etc.
 
   isDefault Boolean @default(false) // Endereço principal do usuário
@@ -66,8 +66,8 @@ model Product {
   name        String
   description String? // O '?' indica que o campo é 
   slug        String  @unique
-  pastPrice   Decimal @db.Decimal(10, 2)
-  newPrice    Decimal @db.Decimal(10, 2) // Define precisão para valores monetários
+  pastPrice   Int
+  newPrice    Int
   stock       Int
   imageUrl    String?
 
@@ -121,9 +121,9 @@ model CartItem {
 
 // Tabela de Pedidos (Orders)
 model Order {
-  id         String  @id @default(uuid())
-  totalPrice Decimal @db.Decimal(10, 2)
-  status     String  @default("pending")
+  id         String @id @default(uuid())
+  totalPrice Int
+  status     String @default("pending")
 
   // Relacionamento
   user   User   @relation(fields: [userId], references: [id])
@@ -138,9 +138,9 @@ model Order {
 
 // Tabela de Itens do Pedido
 model OrderItem {
-  id              String  @id @default(uuid())
+  id              String @id @default(uuid())
   quantity        Int
-  priceAtPurchase Decimal @db.Decimal(10, 2)
+  priceAtPurchase Int
 
   // Relacionamentos
   order   Order  @relation(fields: [orderId], references: [id])
