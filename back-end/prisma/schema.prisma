@@ -1,0 +1,154 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  CUSTOMER
+  ADMIN
+  SELLER
+}
+
+// Tabela de Usuários
+model User {
+  id            String    @id @default(uuid()) // Usa UUID para IDs
+  name          String
+  email         String    @unique
+  password_hash String
+  role          UserRole  @default(CUSTOMER)
+  isActive      Boolean   @default(true)
+  emailVerified Boolean   @default(false)
+  phone         String?
+  lastLogin     DateTime?
+  otpToken      String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // Relacionamentos
+  orders    Order[]
+  cart      Cart?
+  addresses Address[]
+}
+
+model Address {
+  id     String @id @default(uuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+
+  street       String // Rua, avenida, etc.
+  number       String? // Número da casa/prédio
+  complement   String? // Apto, bloco, referência
+  neighborhood String? // Bairro
+  city         String
+  state        String
+  postalCode   String // CEP
+  country      String  @default("Angola") // ou "Brazil", etc.
+
+  isDefault Boolean @default(false) // Endereço principal do usuário
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// Tabela de Produtos
+model Product {
+  id          String  @id @default(uuid())
+  name        String
+  description String? // O '?' indica que o campo é 
+  slug        String  @unique
+  pastPrice   Decimal @db.Decimal(10, 2)
+  newPrice    Decimal @db.Decimal(10, 2) // Define precisão para valores monetários
+  stock       Int
+  imageUrl    String?
+
+  // Relacionamentos
+  category   Category? @relation(fields: [categoryId], references: [id])
+  categoryId String?
+
+  cartItems  CartItem[]
+  orderItems OrderItem[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// Tabela de Categorias
+model Category {
+  id   String @id @default(uuid())
+  name String @unique
+
+  // Relacionamento
+  products Product[]
+}
+
+// Tabela de Carrinho
+model Cart {
+  id String @id @default(uuid())
+
+  // Relacionamento 1:1 com User
+  user   User   @relation(fields: [userId], references: [id])
+  userId String @unique // Garante que cada usuário tenha apenas um carrinho
+
+  // Relacionamento com CartItem
+  items CartItem[]
+}
+
+// Tabela de Itens do Carrinho
+model CartItem {
+  id       String @id @default(uuid())
+  quantity Int
+
+  // Relacionamentos
+  cart   Cart   @relation(fields: [cartId], references: [id])
+  cartId String
+
+  product   Product @relation(fields: [productId], references: [id])
+  productId String
+
+  // Cria uma chave composta para evitar duplicidade (um produto por carrinho)
+  @@unique([cartId, productId])
+}
+
+// Tabela de Pedidos (Orders)
+model Order {
+  id         String  @id @default(uuid())
+  totalPrice Decimal @db.Decimal(10, 2)
+  status     String  @default("pending")
+
+  // Relacionamento
+  user   User   @relation(fields: [userId], references: [id])
+  userId String
+
+  // Relacionamento com OrderItem
+  items OrderItem[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// Tabela de Itens do Pedido
+model OrderItem {
+  id              String  @id @default(uuid())
+  quantity        Int
+  priceAtPurchase Decimal @db.Decimal(10, 2)
+
+  // Relacionamentos
+  order   Order  @relation(fields: [orderId], references: [id])
+  orderId String
+
+  product   Product @relation(fields: [productId], references: [id])
+  productId String
+
+  // Cria uma chave composta para evitar duplicidade (um produto por pedido)
+  @@unique([orderId, productId])
+}
