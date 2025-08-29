@@ -4,6 +4,7 @@ import {
   IsNotEmpty,
   IsOptional,
   IsString,
+  IsUppercase,
   MinLength,
 } from 'class-validator';
 
@@ -29,6 +30,7 @@ export class AuthSinUpDto {
   password: string;
 
   @IsOptional()
+  @IsUppercase({ message: '' })
   @IsEnum(UserRole, { message: 'O role deve ser CUSTOMER, ADMIN ou SELLER' })
   role?: UserRole;
 }

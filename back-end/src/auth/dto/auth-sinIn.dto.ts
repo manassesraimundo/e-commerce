@@ -1,12 +1,13 @@
-import { IsEmail, IsNotEmpty, IsString } from 'class-validator';
+import { IsEmail, IsNotEmpty, IsString, MinLength } from 'class-validator';
 
 export class AuthSinInDto {
   @IsString({ message: '' })
   @IsNotEmpty({ message: '' })
-  name: string;
+  @IsEmail({}, { message: '' })
+  email: string;
 
   @IsString({ message: '' })
   @IsNotEmpty({ message: '' })
-  @IsEmail({}, { message: '' })
-  email: string;
+  @MinLength(8, { message: '' })
+  password: string;
 }
