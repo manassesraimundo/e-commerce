@@ -13,7 +13,7 @@ import * as bcrypt from 'bcrypt';
 export class AuthService {
   constructor(
     private readonly prismaService: PrismaService,
-    private jwtService: JwtService,
+    private readonly jwtService: JwtService,
   ) {}
 
   async sinUp(body: AuthSinUpDto) {

@@ -15,22 +15,23 @@ export enum UserRole {
 }
 
 export class AuthSinUpDto {
-  @IsString({ message: '' })
-  @IsNotEmpty({ message: '' })
+  @IsString({ message: 'Name must be a string.' })
+  @IsNotEmpty({ message: 'Name is required.' })
   name: string;
 
-  @IsString({ message: '' })
-  @IsNotEmpty({ message: '' })
-  @IsEmail({}, { message: '' })
+  @IsString({ message: 'Email must be a string.' })
+  @IsNotEmpty({ message: 'Email is required.' })
+  @IsEmail({}, { message: 'Please provide a valid email address.' })
   email: string;
 
-  @IsString({ message: '' })
-  @IsNotEmpty({ message: '' })
-  @MinLength(8, { message: '' })
+  @IsString({ message: 'Password must be a string.' })
+  @IsNotEmpty({ message: 'Password is required.' })
+  @MinLength(8, { message: 'Password must be at least 8 characters long.' })
   password: string;
 
   @IsOptional()
-  @IsUppercase({ message: '' })
-  @IsEnum(UserRole, { message: 'O role deve ser CUSTOMER, ADMIN ou SELLER' })
+  @IsUppercase({ message: 'Role must be in uppercase letters.' })
+  @IsEnum(UserRole, { message: 'Role must be CUSTOMER, ADMIN or SELLER.' })
   role?: UserRole;
+
 }
