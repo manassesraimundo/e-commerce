@@ -8,11 +8,13 @@ import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { AuthSinUpDto, AuthSinInDto, UserRole } from './dto/auth.dto';
 import * as bcrypt from 'bcrypt';
+import { EmailService } from 'src/email/email.service';
 
 @Injectable()
 export class AuthService {
   constructor(
     private readonly prismaService: PrismaService,
+    private readonly emailService: EmailService,
     private readonly jwtService: JwtService,
   ) {}
 
@@ -21,7 +23,7 @@ export class AuthService {
     const user = await this.prismaService.user.findUnique({
       where: { email: body.email },
     });
-    if (user) throw new ConflictException();
+    if (user) throw new ConflictException('Duplication conflict');
 
     // Passwod Hash
     const salt = await bcrypt.genSalt(10);
@@ -51,7 +53,7 @@ export class AuthService {
     const user = await this.prismaService.user.findUnique({
       where: { email },
     });
-    if (!user || !user.otpToken) throw new NotFoundException();
+    if (!user || !user.otpToken) throw new NotFoundException('User or verification code not found.');
 
     const isvalid = await bcrypt.compare(otp, user.otpToken);
     if (!isvalid) throw new UnauthorizedException();
@@ -73,7 +75,7 @@ export class AuthService {
     const user = await this.prismaService.user.findUnique({
       where: { email: body.email },
     });
-    if (!user) throw new NotFoundException();
+    if (!user) throw new NotFoundException('User not found.');
 
     if (!user.emailVerified) {
       if (user.otpToken) {
@@ -101,7 +103,7 @@ export class AuthService {
       body.password,
       user?.password_hash,
     );
-    if (!isPasswordValid) throw new UnauthorizedException();
+    if (!isPasswordValid) throw new UnauthorizedException('Invalid credentials.');
 
     const token = await this.generetedToken(user.id, user.email, user.role);
 
@@ -111,7 +113,7 @@ export class AuthService {
     const user = await this.prismaService.user.findUnique({
       where: { email },
     });
-    if (!user) throw new NotFoundException();
+    if (!user) throw new NotFoundException('User not found.');
 
     // Gerar o JWT temporario
     const payload = { sub: user.id, email: user.email, action: 'reset_password' };
