@@ -18,13 +18,13 @@ export class AuthService {
     private readonly prismaService: PrismaService,
     private readonly emailService: EmailService,
     private readonly jwtService: JwtService,
-  ) { }
+  ) {}
 
   /**
- * Sign up a new user, hash password, generate OTP and save to database
- * @param body AuthSignUpDto
- * @returns Success message
- */
+   * Sign up a new user, hash password, generate OTP and save to database
+   * @param body AuthSignUpDto
+   * @returns Success message
+   */
   async signUp(body: AuthSinUpDto) {
     try {
       // Check user
@@ -61,11 +61,11 @@ export class AuthService {
   }
 
   /**
- * Verify user's OTP and activate account
- * @param email User email
- * @param otp OTP code
- * @returns Auth token
- */
+   * Verify user's OTP and activate account
+   * @param email User email
+   * @param otp OTP code
+   * @returns Auth token
+   */
   async verifyOtp(email: string, otp: string) {
     try {
       const user = await this.prismaService.user.findUnique({
@@ -100,10 +100,10 @@ export class AuthService {
   }
 
   /**
- * Resend a new OTP to the user
- * @param email User email
- * @returns Confirmation message
- */
+   * Resend a new OTP to the user
+   * @param email User email
+   * @returns Confirmation message
+   */
   async sendNewOtp(email: string) {
     try {
       const user = await this.prismaService.user.findUnique({
@@ -129,10 +129,10 @@ export class AuthService {
   }
 
   /**
- * Sign in user with email and password
- * @param body AuthSignInDto
- * @returns JWT token
- */
+   * Sign in user with email and password
+   * @param body AuthSignInDto
+   * @returns JWT token
+   */
   async signIn(body: AuthSinInDto) {
     try {
       const user = await this.prismaService.user.findUnique({
@@ -179,10 +179,10 @@ export class AuthService {
   }
 
   /**
- * Generate a reset password link and send via email
- * @param email string
- * @returns message confirmation
- */
+   * Generate a reset password link and send via email
+   * @param email string
+   * @returns message confirmation
+   */
   async requestPasswordReset(email: string) {
     try {
       const user = await this.prismaService.user.findUnique({
@@ -214,11 +214,11 @@ export class AuthService {
   }
 
   /**
- * Reset user password with a valid reset token
- * @param token string
- * @param newPassword string
- * @returns success message
- */
+   * Reset user password with a valid reset token
+   * @param token string
+   * @param newPassword string
+   * @returns success message
+   */
   async resetPassword(token: string, newPassword: string) {
     try {
       const payload = await this.jwtService.verifyAsync(token, {
@@ -244,9 +244,9 @@ export class AuthService {
   }
 
   /**
-  * Generate a 6-digit OTP code, hash it, and set its expiration time
-  * @returns Object containing the plain OTP (for sending), its hash, and expiration date
-  */
+   * Generate a 6-digit OTP code, hash it, and set its expiration time
+   * @returns Object containing the plain OTP (for sending), its hash, and expiration date
+   */
   private async generetedOtp() {
     const code = Math.floor(100000 + Math.random() * 900000).toString();
     const otpHash = await bcrypt.hash(code, 10);
@@ -256,12 +256,12 @@ export class AuthService {
   }
 
   /**
- * Generate JWT token
- * @param userId - User unique identifier (UUID)
- * @param email - User email
- * @param role - User role
- * @returns Object containing signed JWT
- */
+   * Generate JWT token
+   * @param userId - User unique identifier (UUID)
+   * @param email - User email
+   * @param role - User role
+   * @returns Object containing signed JWT
+   */
   private async generetedToken(userId: string, email: string, role: string) {
     const payload = { sub: userId, email: email, role: role };
     const token = await this.jwtService.signAsync(payload, {
