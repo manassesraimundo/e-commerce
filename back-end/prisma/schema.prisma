@@ -30,7 +30,8 @@ model User {
   emailVerified Boolean   @default(false)
   phone         String?
   lastLogin     DateTime?
-  otpToken      String?
+  otpVerify      String?
+  otpExpiresAt  DateTime?
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 

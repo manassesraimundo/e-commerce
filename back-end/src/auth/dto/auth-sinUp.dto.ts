@@ -33,5 +33,4 @@ export class AuthSinUpDto {
   @IsUppercase({ message: 'Role must be in uppercase letters.' })
   @IsEnum(UserRole, { message: 'Role must be CUSTOMER, ADMIN or SELLER.' })
   role?: UserRole;
-
 }
