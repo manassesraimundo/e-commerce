@@ -18,7 +18,7 @@ export class AuthService {
     private readonly prismaService: PrismaService,
     private readonly emailService: EmailService,
     private readonly jwtService: JwtService,
-  ) {}
+  ) { }
 
   /**
    * Sign up a new user, hash password, generate OTP and save to database
@@ -84,7 +84,7 @@ export class AuthService {
       if (!user.emailVerified) {
         await this.prismaService.user.update({
           where: { email },
-          data: { emailVerified: true, otpVerify: null },
+          data: { emailVerified: true, otpVerify: null, lastLogin: new Date() },
         });
       }
 
@@ -168,6 +168,10 @@ export class AuthService {
       if (!isPasswordValid)
         throw new UnauthorizedException('Invalid credentials.');
 
+      await this.prismaService.user.update({
+        where: { email: user.email },
+        data: { lastLogin: new Date() }
+      });
       const token = await this.generetedToken(user.id, user.email, user.role);
 
       return { token };
