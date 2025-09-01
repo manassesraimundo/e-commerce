@@ -145,6 +145,8 @@ export class UserService {
       await this.prismaService.user.delete({
         where: { id: userID },
       });
+
+      return { message: 'Account deleted successfully.' };
     } catch (error) {
       throw error instanceof HttpException
         ? error
