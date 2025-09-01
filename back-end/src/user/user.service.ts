@@ -9,6 +9,7 @@ import {
 import { PrismaService } from 'src/prisma/prisma.service';
 import * as bcrypt from 'bcrypt';
 import { AddressUpdateDto } from './dto/address-update.dto';
+import { AddressCreateDto } from './dto/address-create.dto';
 
 @Injectable()
 export class UserService {
@@ -38,6 +39,38 @@ export class UserService {
       throw error instanceof HttpException
         ? error
         : new InternalServerErrorException('Error fetching user.');
+    }
+  }
+
+  async createAddressUser(userID: string, body: AddressCreateDto) {
+    try {
+      if (body.isDefault) {
+        await this.prismaService.address.updateMany({
+          where: { userId: userID, isDefault: true },
+          data: { isDefault: false },
+        });
+      }
+
+      await this.prismaService.address.create({
+        data: {
+          userId: userID,
+          city: body.city,
+          street: body.street,
+          country: body.country ?? 'Angola',
+          complement: body.complement,
+          postalCode: body.postalCode,
+          neighborhood: body.neighborhood,
+          state: body.state,
+          number: body.number,
+          isDefault: body.isDefault ?? false,
+        },
+      });
+
+      return { message: 'Address created successfully.' };
+    } catch (error) {
+      throw error instanceof HttpException
+        ? error
+        : new InternalServerErrorException('Error creating address.');
     }
   }
 
