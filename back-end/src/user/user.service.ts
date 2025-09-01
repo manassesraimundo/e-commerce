@@ -4,9 +4,11 @@ import {
   Injectable,
   InternalServerErrorException,
   NotFoundException,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import * as bcrypt from 'bcrypt';
+import { AddressUpdateDto } from './dto/address-update.dto';
 
 @Injectable()
 export class UserService {
@@ -39,6 +41,45 @@ export class UserService {
     }
   }
 
+  async updateAddressUser(
+    userID: string,
+    body: AddressUpdateDto,
+    addressID: string,
+  ) {
+    try {
+      const address = await this.prismaService.address.findUnique({
+        where: { id: addressID },
+      });
+      if (!address) throw new NotFoundException('Address not found.');
+
+      if (address.userId !== userID) {
+        throw new UnauthorizedException(
+          'You are not allowed to update this address.',
+        );
+      }
+      await this.prismaService.address.update({
+        where: { id: addressID },
+        data: {
+          city: body.city,
+          state: body.state,
+          street: body.street,
+          complement: body.complement,
+          number: body.number,
+          neighborhood: body.neighborhood,
+          postalCode: body.postalCode,
+          isDefault: body.isDefault,
+          country: body.country,
+        },
+      });
+
+      return { message: 'Address updated successfully.' };
+    } catch (error) {
+      throw error instanceof HttpException
+        ? error
+        : new InternalServerErrorException('Error updating address.');
+    }
+  }
+
   async updatePasswordUser(userID: string, password: string) {
     if (password.length < 8)
       throw new BadRequestException(
@@ -58,6 +99,23 @@ export class UserService {
       throw error instanceof HttpException
         ? error
         : new InternalServerErrorException('Error updating password.');
+    }
+  }
+
+  async deleteAccountUser(userID: string) {
+    try {
+      const user = await this.prismaService.user.findUnique({
+        where: { id: userID },
+      });
+      if (!user) throw new NotFoundException('User not found.');
+
+      await this.prismaService.user.delete({
+        where: { id: userID },
+      });
+    } catch (error) {
+      throw error instanceof HttpException
+        ? error
+        : new InternalServerErrorException('Error deleting account.');
     }
   }
 }
