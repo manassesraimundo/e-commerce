@@ -18,7 +18,7 @@ export class AuthService {
     private readonly prismaService: PrismaService,
     private readonly emailService: EmailService,
     private readonly jwtService: JwtService,
-  ) { }
+  ) {}
 
   /**
    * Sign up a new user, hash password, generate OTP and save to database
@@ -28,9 +28,7 @@ export class AuthService {
   async signUp(body: AuthSinUpDto) {
     try {
       // Check user
-      const user = await this.prismaService.user.findUnique({
-        where: { email: body.email },
-      });
+      const user = await this.checkUserByEmail(body.email);
       if (user) throw new ConflictException('Duplication conflict');
 
       // Passwod Hash
@@ -68,9 +66,7 @@ export class AuthService {
    */
   async verifyOtp(email: string, otp: string) {
     try {
-      const user = await this.prismaService.user.findUnique({
-        where: { email },
-      });
+      const user = await this.checkUserByEmail(email);
       if (!user || !user.otpVerify)
         throw new NotFoundException('User or verification code not found.');
 
@@ -106,10 +102,8 @@ export class AuthService {
    */
   async sendNewOtp(email: string) {
     try {
-      const user = await this.prismaService.user.findUnique({
-        where: { email },
-      });
-      if (!user) throw new NotFoundException('');
+      const user = await this.checkUserByEmail(email);
+      if (!user) throw new NotFoundException('User not found.');
 
       const otp = await this.generetedOtp();
 
@@ -135,9 +129,7 @@ export class AuthService {
    */
   async signIn(body: AuthSinInDto) {
     try {
-      const user = await this.prismaService.user.findUnique({
-        where: { email: body.email },
-      });
+      const user = await this.checkUserByEmail(body.email);
       if (!user) throw new NotFoundException('User not found.');
 
       if (!user.emailVerified) {
@@ -170,7 +162,7 @@ export class AuthService {
 
       await this.prismaService.user.update({
         where: { email: user.email },
-        data: { lastLogin: new Date() }
+        data: { lastLogin: new Date() },
       });
       const token = await this.generetedToken(user.id, user.email, user.role);
 
@@ -189,9 +181,7 @@ export class AuthService {
    */
   async requestPasswordReset(email: string) {
     try {
-      const user = await this.prismaService.user.findUnique({
-        where: { email },
-      });
+      const user = await this.checkUserByEmail(email);
       if (!user) throw new NotFoundException('User not found.');
 
       // Gerar o JWT temporario
@@ -274,5 +264,19 @@ export class AuthService {
     });
 
     return { token };
+  }
+
+  /**
+   * Check user
+   * @param email
+   * @returns user
+   */
+  private async checkUserByEmail(email: string) {
+    const user = await this.prismaService.user.findUnique({
+      where: { email },
+    });
+    if (!user) return null;
+
+    return user;
   }
 }
