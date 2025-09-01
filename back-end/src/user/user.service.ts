@@ -141,7 +141,10 @@ export class UserService {
         where: { id: userID },
       });
       if (!user) throw new NotFoundException('User not found.');
-
+      if (user.role === 'SELLER')
+        throw new UnauthorizedException(
+          'Your account can only be deleted by an administrator',
+        );
       await this.prismaService.user.delete({
         where: { id: userID },
       });
