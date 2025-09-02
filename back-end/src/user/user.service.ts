@@ -8,8 +8,7 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import * as bcrypt from 'bcrypt';
-import { AddressUpdateDto } from './dto/address-update.dto';
-import { AddressCreateDto } from './dto/address-create.dto';
+import { AddressCreateDto, AddressUpdateDto, UserUpdateDto } from './dto/user.dto';
 
 @Injectable()
 export class UserService {
@@ -39,6 +38,24 @@ export class UserService {
       throw error instanceof HttpException
         ? error
         : new InternalServerErrorException('Error fetching user.');
+    }
+  }
+
+  async updateUser(userID: string, body: UserUpdateDto) {
+    try {
+      const user = await this.prismaService.user.findUnique({
+        where: {id: userID},
+      });
+      if (!user) throw new NotFoundException('User not found.');
+
+      await this.prismaService.user.update({
+        where: {id: userID},
+        data: {name: body.name, phone: body.phone},
+      });
+
+      return {message: 'Update user successfully.'}
+    } catch (error) {
+      
     }
   }
 
