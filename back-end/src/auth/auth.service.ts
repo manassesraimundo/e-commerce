@@ -51,6 +51,9 @@ export class AuthService {
       });
 
       // Send E-mail to user
+      this.emailService.sendEmail(
+        `Seu codigo para verificar a sua conta ${otp.code}`,
+      );
 
       return { message: 'Check your e-mail to access the verification code.' };
     } catch (error) {
@@ -80,14 +83,19 @@ export class AuthService {
       if (!user.emailVerified) {
         await this.prismaService.user.update({
           where: { email },
-          data: { emailVerified: true, otpVerify: null, lastLogin: new Date() },
+          data: {
+            emailVerified: true,
+            otpVerify: null,
+            otpExpiresAt: null,
+            lastLogin: new Date(),
+          },
         });
       }
 
       // Generet Token
       const token = await this.generetedToken(user.id, user.email, user.role);
 
-      return { token };
+      return token;
     } catch (error) {
       throw error instanceof HttpException
         ? error
@@ -111,6 +119,8 @@ export class AuthService {
         where: { email },
         data: { otpVerify: otp.otpHash, otpExpiresAt: otp.otpExpiresAt },
       });
+
+      this.emailService.sendEmail(`Novo Opt ${otp.code}.`);
 
       return {
         message: 'A new verification code has been sent to your email.',
@@ -198,6 +208,7 @@ export class AuthService {
       const resetLink = `https://localhost:3000/reset-password?token=${token}`;
 
       // Enviar email
+      this.emailService.sendEmail(resetLink);
 
       return { message: 'Check your e-mail to reset your password.' };
     } catch (error) {
@@ -226,7 +237,7 @@ export class AuthService {
       const passwordHash = await bcrypt.hash(newPassword, salt);
 
       await this.prismaService.user.update({
-        where: { id: payload.sub },
+        where: { email: payload.email },
         data: { password_hash: passwordHash },
       });
       return { message: 'Password updated successfully' };
@@ -246,7 +257,7 @@ export class AuthService {
     const otpHash = await bcrypt.hash(code, 10);
     const otpExpiresAt = new Date(Date.now() + 10 * 60 * 1000);
 
-    return { otpHash, otpExpiresAt };
+    return { otpHash, otpExpiresAt, code };
   }
 
   /**
