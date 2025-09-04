@@ -27,7 +27,7 @@ export class AuthController {
     @Body() body: { email: string; otp: string },
     @Res({ passthrough: true }) res: Response,
   ) {
-    const { token } = await this.authService.verifyOtp(body.email, body.otp);
+    const token = await this.authService.verifyOtp(body.email, body.otp);
 
     res.cookie('access_token', token, {
       httpOnly: true,
@@ -52,7 +52,7 @@ export class AuthController {
     @Body() body: AuthSinInDto,
     @Res({ passthrough: true }) res: Response,
   ) {
-    const { token } = await this.authService.signIn(body);
+    const token = await this.authService.signIn(body);
 
     res.cookie('access_token', token, {
       httpOnly: true,
@@ -61,7 +61,7 @@ export class AuthController {
       maxAge: 1000 * 60 * 60,
     });
 
-    return token;
+    return { token };
   }
 
   @Post('request-password-reset')

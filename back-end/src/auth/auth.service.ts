@@ -176,7 +176,7 @@ export class AuthService {
       });
       const token = await this.generetedToken(user.id, user.email, user.role);
 
-      return { token };
+      return token;
     } catch (error) {
       throw error instanceof HttpException
         ? error
@@ -274,7 +274,7 @@ export class AuthService {
       expiresIn: '1h',
     });
 
-    return { token };
+    return token;
   }
 
   /**
