@@ -41,7 +41,7 @@ export class ProductService {
     }
   }
 
-  async createProduct(body: CreateProductDto, imageUrl: string) {
+  async createProduct(body: CreateProductDto, imageUrl?: string | null) {
     try {
       const product = await this.prismaService.product.findUnique({
         where: { slug: body.slug },
