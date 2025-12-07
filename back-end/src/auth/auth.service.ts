@@ -11,7 +11,7 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { AuthSinUpDto, AuthSinInDto, UserRole } from './dto/auth.dto';
 import * as bcrypt from 'bcrypt';
 import { EmailService } from 'src/email/email.service';
-
+ 
 @Injectable()
 export class AuthService {
   constructor(
