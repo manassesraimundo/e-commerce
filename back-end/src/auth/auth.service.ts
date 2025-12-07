@@ -49,7 +49,7 @@ export class AuthService {
           otpExpiresAt: otp.otpExpiresAt,
         },
       });
-
+      
       // Send E-mail to user
       this.emailService.sendEmail(
         `Seu codigo para verificar a sua conta ${otp.code}`,
