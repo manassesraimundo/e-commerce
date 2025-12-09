@@ -7,11 +7,14 @@ import {
   ParseFilePipeBuilder,
   Post,
   UploadedFile,
+  UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
 import { ProductService } from './product.service';
 import { CreateProductDto } from './dto/create-product.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { AuthGuard } from 'src/auth/auth.guard';
+import { ProductGuard } from './product.guard';
 
 @Controller('product')
 export class ProductController {
@@ -30,6 +33,8 @@ export class ProductController {
   }
 
   @Post('create')
+  @UseGuards(AuthGuard)
+  @UseGuards(ProductGuard)
   @UseInterceptors(FileInterceptor('file'))
   async createProduct(
     @Body() body: CreateProductDto,
@@ -44,6 +49,8 @@ export class ProductController {
   }
 
   @Delete('delete/:slug')
+  @UseGuards(AuthGuard)
+  @UseGuards(ProductGuard)
   async deleteProduct(@Param('slug') slug: string) {
     const message = await this.productService.deleteProduct(slug);
     return message;

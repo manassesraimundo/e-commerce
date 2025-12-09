@@ -141,6 +141,7 @@ export class UserService {
       throw new BadRequestException(
         'Password must be at least 8 characters long.',
       );
+
     try {
       const salt = await bcrypt.genSalt(10);
       const passwordHash = await bcrypt.hash(password, salt);

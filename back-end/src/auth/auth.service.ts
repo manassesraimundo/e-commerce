@@ -11,7 +11,7 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { AuthSinUpDto, AuthSinInDto, UserRole } from './dto/auth.dto';
 import * as bcrypt from 'bcrypt';
 import { EmailService } from 'src/email/email.service';
- 
+
 @Injectable()
 export class AuthService {
   constructor(
@@ -49,7 +49,7 @@ export class AuthService {
           otpExpiresAt: otp.otpExpiresAt,
         },
       });
-      
+
       // Send E-mail to user
       this.emailService.sendEmail(
         `Seu codigo para verificar a sua conta ${otp.code}`,
@@ -81,6 +81,16 @@ export class AuthService {
       if (!isvalid) throw new UnauthorizedException();
 
       if (!user.emailVerified) {
+        await this.prismaService.user.update({
+          where: { email },
+          data: {
+            emailVerified: true,
+            otpVerify: null,
+            otpExpiresAt: null,
+            lastLogin: new Date(),
+          },
+        });
+      } else if (user.emailVerified && user.otpVerify) {
         await this.prismaService.user.update({
           where: { email },
           data: {
