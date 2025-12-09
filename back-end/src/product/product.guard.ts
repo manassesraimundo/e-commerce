@@ -38,6 +38,6 @@ export class ProductGuard implements CanActivate {
     } catch (error) {
       throw new UnauthorizedException();
     }
-    return true;
+    return true; 
   }
 }
