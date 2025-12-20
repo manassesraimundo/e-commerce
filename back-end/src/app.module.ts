@@ -7,6 +7,13 @@ import { ProductModule } from './product/product.module';
 import { CartModule } from './cart/cart.module';
 
 @Module({
-  imports: [PrismaModule, EmailModule, AuthModule, UserModule, ProductModule, CartModule],
+  imports: [
+    PrismaModule,
+    EmailModule,
+    AuthModule,
+    UserModule,
+    ProductModule,
+    CartModule,
+  ],
 })
 export class AppModule {}

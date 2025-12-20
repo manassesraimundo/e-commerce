@@ -10,12 +10,12 @@ import { CreateProductDto, UpdateProductDto } from './dto/product.dto';
 
 @Injectable()
 export class ProductService {
-  constructor(private readonly prismaService: PrismaService) { }
+  constructor(private readonly prismaService: PrismaService) {}
 
-  async getAllProduct() { 
+  async getAllProduct() {
     try {
       const product = await this.prismaService.product.findMany({
-        where: { isActive: true }
+        where: { isActive: true },
       });
       return product;
     } catch (error) {
@@ -143,7 +143,7 @@ export class ProductService {
 
       await this.prismaService.product.update({
         where: { slug },
-        data: { isActive: false }
+        data: { isActive: false },
       });
 
       return { message: 'Product deleted successfully.' };
