@@ -12,7 +12,7 @@ import { CreateProductDto, UpdateProductDto } from './dto/product.dto';
 export class ProductService {
   constructor(private readonly prismaService: PrismaService) { }
 
-  async getAllProduct() {
+  async getAllProduct() { 
     try {
       const product = await this.prismaService.product.findMany({
         where: { isActive: true }
