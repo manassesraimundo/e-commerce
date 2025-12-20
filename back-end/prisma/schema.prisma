@@ -76,6 +76,7 @@ model Product {
   newPrice    Int
   stock       Int
   imageUrl    String?
+  isActive    Boolean @default(true)
 
   // Relacionamentos
   category   Category? @relation(fields: [categoryId], references: [id])

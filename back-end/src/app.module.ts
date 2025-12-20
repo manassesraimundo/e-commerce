@@ -4,8 +4,9 @@ import { PrismaModule } from './prisma/prisma.module';
 import { EmailModule } from './email/email.module';
 import { UserModule } from './user/user.module';
 import { ProductModule } from './product/product.module';
+import { CartModule } from './cart/cart.module';
 
 @Module({
-  imports: [PrismaModule, EmailModule, AuthModule, UserModule, ProductModule],
+  imports: [PrismaModule, EmailModule, AuthModule, UserModule, ProductModule, CartModule],
 })
 export class AppModule {}

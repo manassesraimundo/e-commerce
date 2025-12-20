@@ -19,7 +19,7 @@ import { ProductGuard } from './product.guard';
 @Controller('product')
 export class ProductController {
   constructor(private readonly productService: ProductService) {}
- 
+
   @Get('list')
   async getAllProduct() {
     const products = await this.productService.getAllProduct();

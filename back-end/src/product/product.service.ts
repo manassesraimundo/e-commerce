@@ -10,11 +10,13 @@ import { CreateProductDto, UpdateProductDto } from './dto/product.dto';
 
 @Injectable()
 export class ProductService {
-  constructor(private readonly prismaService: PrismaService) {}
+  constructor(private readonly prismaService: PrismaService) { }
 
   async getAllProduct() {
     try {
-      const product = await this.prismaService.product.findMany();
+      const product = await this.prismaService.product.findMany({
+        where: { isActive: true }
+      });
       return product;
     } catch (error) {
       throw error instanceof HttpException
@@ -43,9 +45,18 @@ export class ProductService {
 
   async createProduct(body: CreateProductDto, imageUrl?: string | null) {
     try {
+      if (body.pastPrice && body.newPrice > body.pastPrice) {
+        throw new BadRequestException('');
+      }
+
+      if (body.stock < 0) {
+        throw new BadRequestException('');
+      }
+
       const product = await this.prismaService.product.findUnique({
         where: { slug: body.slug },
       });
+
       if (product) throw new BadRequestException('Slug already exists.');
 
       await this.prismaService.product.create({
@@ -96,6 +107,10 @@ export class ProductService {
       });
       if (!product) throw new NotFoundException('Product not found.');
 
+      if (body.pastPrice && body.newPrice && body.newPrice > body.pastPrice) {
+        throw new BadRequestException('');
+      }
+
       await this.prismaService.product.update({
         where: { slug },
         data: {
@@ -126,8 +141,9 @@ export class ProductService {
       });
       if (!product) throw new NotFoundException('Product not found.');
 
-      await this.prismaService.product.delete({
+      await this.prismaService.product.update({
         where: { slug },
+        data: { isActive: false }
       });
 
       return { message: 'Product deleted successfully.' };
