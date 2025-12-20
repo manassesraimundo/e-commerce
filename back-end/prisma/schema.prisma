@@ -24,6 +24,15 @@ enum UserRole {
   SELLER
 }
 
+enum OrderStatus {
+  PENDING
+  PAID
+  PROCESSING
+  SHIPPED
+  DELIVERED
+  CANCELED
+}
+
 // Tabela de Usuários
 model User {
   id            String    @id @default(uuid()) // Usa UUID para IDs
@@ -35,7 +44,7 @@ model User {
   emailVerified Boolean   @default(false)
   phone         String?
   lastLogin     DateTime?
-  otpVerify      String?
+  otpVerify     String?
   otpExpiresAt  DateTime?
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
@@ -61,6 +70,8 @@ model Address {
   country      String  @default("Angola") // ou "Brazil", etc.
 
   isDefault Boolean @default(false) // Endereço principal do usuário
+
+  orders Order[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -128,9 +139,9 @@ model CartItem {
 
 // Tabela de Pedidos (Orders)
 model Order {
-  id         String @id @default(uuid())
+  id         String      @id @default(uuid())
   totalPrice Int
-  status     String @default("pending")
+  status     OrderStatus @default(PENDING)
 
   // Relacionamento
   user   User   @relation(fields: [userId], references: [id])
@@ -141,6 +152,8 @@ model Order {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  address   Address? @relation(fields: [addressId], references: [id])
+  addressId String?
 }
 
 // Tabela de Itens do Pedido

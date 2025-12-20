@@ -1,25 +1,36 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, HttpException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { AddToCartDto } from './dto/cart.dto';
+import { PrismaService } from 'src/prisma/prisma.service';
 
 @Injectable()
 export class CartService {
-  create(createCartDto: any) {
-    return 'This action adds a new cart';
-  }
+  constructor(private readonly prismaService: PrismaService) { }
 
-  findAll() {
-    return `This action returns all cart`;
-  }
+  async validateStock(data: AddToCartDto) {
+    try {
+      const product = await this.prismaService.product.findUnique({
+        where: { slug: data.productSlug },
+        select: { stock: true, isActive: true, name: true }
+      });
 
-  findOne(id: number) {
-    return `This action returns a #${id} cart`;
-  }
+      if (!product || !product.isActive) {
+        throw new NotFoundException('');
+      }
 
-  update(id: number, updateCartDto: any) {
-    return `This action updates a #${id} cart`;
-  }
+      if (product.stock < data.quantity) {
+        throw new BadRequestException(
+          `Desculpe, temos apenas ${product.stock} unidades de ${product.name} em estoque.`
+        );
+      }
 
-  remove(id: number) {
-    return `This action removes a #${id} cart`;
+      return {
+        message: 'Item disponível e validado.',
+        available: true
+      };
+    } catch (error) {
+      throw error instanceof HttpException
+        ? error
+        : new InternalServerErrorException('Error fetching products.');
+    }
   }
 }
