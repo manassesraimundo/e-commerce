@@ -52,6 +52,19 @@ export class ProductController {
     );
   }
 
+  @Get('search')
+  async searchProducts(
+    @Query('q') query: string,
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+  ) {
+    return this.productService.searchProducts(
+      query,
+      Number(page) || 1,
+      Number(limit) || 10,
+    );
+  }
+
   @Post('create')
   @UseGuards(AuthGuard, ProductGuard)
   @UseInterceptors(FileInterceptor('file'))
@@ -72,5 +85,20 @@ export class ProductController {
   async deleteProduct(@Param('slug') slug: string) {
     const message = await this.productService.deleteProduct(slug);
     return message;
+  }
+
+  @Post(':productSlug/category/:catego')
+  @UseGuards(AuthGuard, ProductGuard)
+  async assignProductToCategory(
+    @Param('productSlug') productSlug: string,
+    @Param('catego') catego: string,
+  ) {
+    return this.productService.assignProductToCategory(productSlug, catego);
+  }
+
+  @Delete(':productSlug/category')
+  @UseGuards(AuthGuard, ProductGuard)
+  async removeProductFromCategory(@Param('productSlug') productSlug: string) {
+    return this.productService.removeProductFromCategory(productSlug);
   }
 }

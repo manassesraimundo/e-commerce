@@ -10,7 +10,7 @@ import { CreateProductDto, UpdateProductDto } from './dto/product.dto';
 
 @Injectable()
 export class ProductService {
-  constructor(private readonly prismaService: PrismaService) {}
+  constructor(private readonly prismaService: PrismaService) { }
 
   private getPagination(page = 1, limit = 10) {
     const take = Math.min(Number(limit), 50); // limite de segurança
@@ -115,6 +115,55 @@ export class ProductService {
     }
   }
 
+  async searchProducts(query: string, page = 1, limit = 10) {
+    try {
+      if (!query || query.trim() === '') {
+        throw new BadRequestException('Search query cannot be empty.');
+      }
+
+      const { skip, take } = this.getPagination(page, limit);
+
+      const [products, total] = await this.prismaService.$transaction([
+        this.prismaService.product.findMany({
+          where: {
+            isActive: true,
+            name: {
+              contains: query,
+              // @ts-expect-error TS não reconhece 'mode'
+              mode: 'insensitive',
+            },
+          },
+          skip,
+          take,
+        }),
+        this.prismaService.product.count({
+          where: {
+            isActive: true,
+            name: {
+              contains: query,
+              // @ts-expect-error TS não reconhece 'mode'
+              mode: 'insensitive',
+            },
+          },
+        }),
+      ]);
+
+      return {
+        data: products,
+        meta: {
+          total,
+          page: Number(page),
+          limit: Number(take),
+          totalPages: Math.ceil(total / take),
+        },
+      };
+    } catch (error) {
+      throw error instanceof HttpException
+        ? error
+        : new InternalServerErrorException('Error searching products.');
+    }
+  }
+
   async createProduct(body: CreateProductDto, imageUrl?: string | null) {
     try {
       if (body.pastPrice && body.newPrice > body.pastPrice) {
@@ -149,6 +198,31 @@ export class ProductService {
       throw error instanceof HttpException
         ? error
         : new InternalServerErrorException('Error create product.');
+    }
+  }
+
+  async assignProductToCategory(productSlug: string, name: string) {
+    try {
+      const product = await this.prismaService.product.findUnique({
+        where: { slug: productSlug },
+      });
+      if (!product) throw new NotFoundException('Product not found.');
+
+      const category = await this.prismaService.category.findUnique({
+        where: { name },
+      });
+      if (!category) throw new NotFoundException('Category not found.');
+
+      await this.prismaService.product.update({
+        where: { slug: productSlug },
+        data: { categoryId: category.id },
+      });
+
+      return { message: `Product '${product.name}' assigned to category '${category.name}' successfully.` };
+    } catch (error) {
+      throw error instanceof HttpException
+        ? error
+        : new InternalServerErrorException('Error assigning product to category.');
     }
   }
 
@@ -223,6 +297,31 @@ export class ProductService {
       throw error instanceof HttpException
         ? error
         : new InternalServerErrorException('Error deleting product.');
+    }
+  }
+
+  async removeProductFromCategory(productSlug: string) {
+    try {
+      const product = await this.prismaService.product.findUnique({
+        where: { slug: productSlug },
+      });
+
+      if (!product) throw new NotFoundException('Product not found.');
+
+      if (!product.categoryId) {
+        return { message: 'Product is already not assigned to any category.' };
+      }
+
+      await this.prismaService.product.update({
+        where: { slug: productSlug },
+        data: { categoryId: null },
+      });
+
+      return { message: `Product '${product.name}' removed from its category.` };
+    } catch (error) {
+      throw error instanceof HttpException
+        ? error
+        : new InternalServerErrorException('Error removing product from category.');
     }
   }
 }

@@ -1,26 +1,42 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, InternalServerErrorException } from '@nestjs/common';
 import { CreateCategoryDto } from './dto/create-category.dto';
-import { UpdateCategoryDto } from './dto/update-category.dto';
+import { PrismaService } from 'src/prisma/prisma.service';
 
 @Injectable()
 export class CategoryService {
-  create(createCategoryDto: CreateCategoryDto) {
-    return 'This action adds a new category';
+  constructor(private readonly prismaService: PrismaService) { }
+
+  async createCategory(body: CreateCategoryDto) {
+    try {
+      const existsCategory = await this.prismaService.category.findUnique({
+        where: { name: body.name }
+      });
+
+      if (!existsCategory) {
+        throw new BadRequestException('Category already exists.');
+      }
+
+      await this.prismaService.category.create({
+        data: { name: body.name }
+      });
+
+      return { message: 'Category created successfully' }
+    } catch (error) {
+      throw error instanceof BadRequestException
+        ? error
+        : new InternalServerErrorException('Error creating category.');
+    }
   }
 
-  findAll() {
-    return `This action returns all category`;
-  }
+  async getAllCategories() {
+    try {
+      const categorys = await this.prismaService.category.findMany({
+        orderBy: { name: 'asc' }
+      });
 
-  findOne(id: number) {
-    return `This action returns a #${id} category`;
-  }
+      return categorys;
+    } catch (error) {
 
-  update(id: number, updateCategoryDto: UpdateCategoryDto) {
-    return `This action updates a #${id} category`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} category`;
+    }
   }
 }
