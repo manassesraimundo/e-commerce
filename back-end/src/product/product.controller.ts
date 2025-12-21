@@ -6,6 +6,7 @@ import {
   Param,
   ParseFilePipeBuilder,
   Post,
+  Query,
   UploadedFile,
   UseGuards,
   UseInterceptors,
@@ -18,11 +19,17 @@ import { ProductGuard } from './product.guard';
 
 @Controller('product')
 export class ProductController {
-  constructor(private readonly productService: ProductService) {}
+  constructor(private readonly productService: ProductService) { }
 
   @Get('list')
-  async getAllProduct() {
-    const products = await this.productService.getAllProduct();
+  async getAllProduct(
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+  ) {
+    const products = await this.productService.getAllProduct(
+      Number(page) || 1,
+      Number(limit) || 10,
+    );
     return products;
   }
 
@@ -32,9 +39,21 @@ export class ProductController {
     return product;
   }
 
+  @Get('category/:catego')
+  async getProductsByCategory(
+    @Param('catego') catego: string,
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+  ) {
+    return this.productService.getProductsByCategory(
+      catego,
+      Number(page) || 1,
+      Number(limit) || 10,
+    );
+  }
+
   @Post('create')
-  @UseGuards(AuthGuard)
-  @UseGuards(ProductGuard)
+  @UseGuards(AuthGuard, ProductGuard)
   @UseInterceptors(FileInterceptor('file'))
   async createProduct(
     @Body() body: CreateProductDto,
@@ -49,8 +68,7 @@ export class ProductController {
   }
 
   @Delete('delete/:slug')
-  @UseGuards(AuthGuard)
-  @UseGuards(ProductGuard)
+  @UseGuards(AuthGuard, ProductGuard)
   async deleteProduct(@Param('slug') slug: string) {
     const message = await this.productService.deleteProduct(slug);
     return message;

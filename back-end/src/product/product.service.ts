@@ -12,12 +12,37 @@ import { CreateProductDto, UpdateProductDto } from './dto/product.dto';
 export class ProductService {
   constructor(private readonly prismaService: PrismaService) {}
 
-  async getAllProduct() {
+  private getPagination(page = 1, limit = 10) {
+    const take = Math.min(Number(limit), 50); // limite de segurança
+    const skip = (Number(page) - 1) * take;
+
+    return { skip, take };
+  }
+
+  async getAllProduct(page = 1, limit = 10) {
     try {
-      const product = await this.prismaService.product.findMany({
-        where: { isActive: true },
-      });
-      return product;
+      const { skip, take } = this.getPagination(page, limit);
+
+      const [products, total] = await this.prismaService.$transaction([
+        this.prismaService.product.findMany({
+          where: { isActive: true },
+          skip,
+          take,
+        }),
+        this.prismaService.product.count({
+          where: { isActive: true },
+        }),
+      ]);
+
+      return {
+        data: products,
+        meta: {
+          total,
+          page: Number(page),
+          limit: Number(take),
+          totalPages: Math.ceil(total / take),
+        },
+      };
     } catch (error) {
       throw error instanceof HttpException
         ? error
@@ -40,6 +65,53 @@ export class ProductService {
       throw error instanceof HttpException
         ? error
         : new InternalServerErrorException('Error fetching product.');
+    }
+  }
+
+  async getProductsByCategory(name: string, page = 1, limit = 10) {
+    try {
+      const category = await this.prismaService.category.findUnique({
+        where: { name },
+        select: { id: true, name: true },
+      });
+
+      if (!category) {
+        throw new NotFoundException('Category not found.');
+      }
+
+      const { skip, take } = this.getPagination(page, limit);
+
+      const [products, total] = await this.prismaService.$transaction([
+        this.prismaService.product.findMany({
+          where: {
+            categoryId: category.id,
+            isActive: true,
+          },
+          skip,
+          take,
+        }),
+        this.prismaService.product.count({
+          where: {
+            categoryId: category.id,
+            isActive: true,
+          },
+        }),
+      ]);
+
+      return {
+        category: category.name,
+        data: products,
+        meta: {
+          total,
+          page: Number(page),
+          limit: Number(take),
+          totalPages: Math.ceil(total / take),
+        },
+      };
+    } catch (error) {
+      throw error instanceof HttpException
+        ? error
+        : new InternalServerErrorException('Error updating product.');
     }
   }
 
