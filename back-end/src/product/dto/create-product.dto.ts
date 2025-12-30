@@ -1,11 +1,4 @@
-import {
-  IsString,
-  IsOptional,
-  IsInt,
-  IsUrl,
-  Min,
-  MaxLength,
-} from 'class-validator';
+import { IsString, IsOptional, IsInt, Min, MaxLength } from 'class-validator';
 
 export class CreateProductDto {
   @IsString({ message: 'Name must be a string.' })
@@ -33,7 +26,6 @@ export class CreateProductDto {
   stock: number;
 
   @IsOptional()
-  @IsUrl({}, { message: 'Image URL must be a valid URL.' })
   imageUrl?: string;
 
   @IsOptional()

@@ -10,10 +10,10 @@ import { CreateProductDto, UpdateProductDto } from './dto/product.dto';
 
 @Injectable()
 export class ProductService {
-  constructor(private readonly prismaService: PrismaService) { }
+  constructor(private readonly prismaService: PrismaService) {}
 
   private getPagination(page = 1, limit = 10) {
-    const take = Math.min(Number(limit), 50); // limite de segurança
+    const take = Math.min(Number(limit), 50);
     const skip = (Number(page) - 1) * take;
 
     return { skip, take };
@@ -129,8 +129,8 @@ export class ProductService {
             isActive: true,
             name: {
               contains: query,
-              // @ts-expect-error TS não reconhece 'mode'
-              mode: 'insensitive',
+
+              // mode: 'insensitive',
             },
           },
           skip,
@@ -141,8 +141,8 @@ export class ProductService {
             isActive: true,
             name: {
               contains: query,
-              // @ts-expect-error TS não reconhece 'mode'
-              mode: 'insensitive',
+
+              //mode: 'insensitive',
             },
           },
         }),
@@ -164,7 +164,7 @@ export class ProductService {
     }
   }
 
-  async createProduct(body: CreateProductDto, imageUrl?: string | null) {
+  async createProduct(body: CreateProductDto) {
     try {
       if (body.pastPrice && body.newPrice > body.pastPrice) {
         throw new BadRequestException('');
@@ -188,7 +188,7 @@ export class ProductService {
           pastPrice: body.pastPrice,
           stock: body.stock,
           description: body.description,
-          imageUrl: body.imageUrl ?? imageUrl,
+          imageUrl: body.imageUrl,
           categoryId: body.categoryId,
         },
       });
@@ -218,11 +218,15 @@ export class ProductService {
         data: { categoryId: category.id },
       });
 
-      return { message: `Product '${product.name}' assigned to category '${category.name}' successfully.` };
+      return {
+        message: `Product '${product.name}' assigned to category '${category.name}' successfully.`,
+      };
     } catch (error) {
       throw error instanceof HttpException
         ? error
-        : new InternalServerErrorException('Error assigning product to category.');
+        : new InternalServerErrorException(
+            'Error assigning product to category.',
+          );
     }
   }
 
@@ -235,7 +239,7 @@ export class ProductService {
 
       await this.prismaService.product.update({
         where: { slug },
-        data: { imageUrl: `/uploads/products/${filename}` },
+        data: { imageUrl: filename },
       });
 
       return { message: 'Image uploaded successfully.' };
@@ -317,11 +321,15 @@ export class ProductService {
         data: { categoryId: null },
       });
 
-      return { message: `Product '${product.name}' removed from its category.` };
+      return {
+        message: `Product '${product.name}' removed from its category.`,
+      };
     } catch (error) {
       throw error instanceof HttpException
         ? error
-        : new InternalServerErrorException('Error removing product from category.');
+        : new InternalServerErrorException(
+            'Error removing product from category.',
+          );
     }
   }
 }

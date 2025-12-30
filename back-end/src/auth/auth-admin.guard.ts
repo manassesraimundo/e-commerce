@@ -7,23 +7,23 @@ import {
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { Request } from 'express';
+
 import { PrismaService } from 'src/prisma/prisma.service';
 
 @Injectable()
-export class ProductGuard implements CanActivate {
+export class AuthAdminGuard implements CanActivate {
   constructor(
-    private jwtService: JwtService,
-    private prismaService: PrismaService,
+    private readonly jwtServise: JwtService,
+    private readonly prismaService: PrismaService,
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest<Request>();
-    const token = request.cookies.access_token || undefined;
+    const toke = request.cookies.access_token || undefined;
 
-    if (!token) throw new UnauthorizedException();
-
+    if (!toke) throw new UnauthorizedException();
     try {
-      const payload = await this.jwtService.verifyAsync(token, {
+      const payload = await this.jwtServise.verifyAsync(toke, {
         algorithms: ['HS256'],
         secret: process.env.JWT_SICRET,
       });
@@ -38,6 +38,7 @@ export class ProductGuard implements CanActivate {
     } catch (error) {
       throw new UnauthorizedException();
     }
+
     return true;
   }
 }
