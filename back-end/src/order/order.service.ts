@@ -94,6 +94,11 @@ export class OrderService {
         totalOrdersShipped,
       ] = await this.prismaService.$transaction([
         this.prismaService.order.findMany({
+          omit: {
+            addressId: true,
+            updatedAt: true,
+            userId: true,
+          },
           include: {
             user: {
               select: {
@@ -119,11 +124,13 @@ export class OrderService {
             items: {
               select: {
                 id: true,
+                quantity: true,
                 product: {
                   omit: {
                     stock: true,
                     createdAt: true,
                     updatedAt: true,
+                    categoryId: true,
                   },
                   include: { category: { select: { id: true, name: true } } },
                 },
@@ -253,7 +260,30 @@ export class OrderService {
     try {
       const orders = await this.prismaService.order.findMany({
         where: { userId },
-        include: { items: true },
+        include: {
+          items: {
+            select: {
+              id: true,
+              quantity: true,
+              product: {
+                select: {
+                  id: true,
+                  name: true,
+                  slug: true,
+                  newPrice: true,
+                  imageUrl: true,
+                  category: {
+                    select: {
+                      id: true,
+                      name: true,
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+        omit: { addressId: true, userId: true },
       });
 
       if (!orders) throw new NotFoundException('Not found order.');
